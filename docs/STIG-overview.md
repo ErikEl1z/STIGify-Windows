@@ -1,15 +1,16 @@
-# STIG Overview  
+# STIGify‑Windows: STIG Overview  
 A Practical Walkthrough of Windows Hardening the STIG Way
 
-This document provides an overview of the DoD Security Technical Implementation Guide (STIG) requirements relevant to Windows system hardening. It explains what STIGs are, why they matter for federal cybersecurity roles, and how this project applies STIG‑aligned controls to a Windows virtual machine.
+This document provides an overview of the DoD Security Technical Implementation Guide (STIG) requirements relevant to Windows system hardening. It explains what STIGs are, why they matter for federal cybersecurity roles, and how this project applies STIG‑aligned controls to a Windows Server virtual machine.
 
 ---
 
-##  What Are STIGs?
+## What Are STIGs?
 
 Security Technical Implementation Guides (STIGs) are configuration standards published by the Defense Information Systems Agency (DISA). They define how systems must be secured to meet DoD cybersecurity requirements.
 
 STIGs cover:
+
 - Operating systems  
 - Applications  
 - Network devices  
@@ -18,6 +19,7 @@ STIGs cover:
 - Security tools  
 
 For Windows systems, STIGs provide detailed guidance on:
+
 - Account policies  
 - Audit policies  
 - User rights assignment  
@@ -30,33 +32,34 @@ STIGs are the baseline for securing systems in DoD, Air Force, Army, Navy, and f
 
 ---
 
-##  Why STIGs Matter
+## Why STIGs Matter
 
 STIG compliance demonstrates the ability to:
+
 - Interpret formal security requirements  
 - Apply secure configurations consistently  
 - Validate system posture  
 - Produce evidence of compliance  
 - Harden systems against common attack vectors  
 
-For government cybersecurity roles, STIG familiarity is a **direct job skill**.
+For government cybersecurity roles, STIG familiarity is a direct job skill.
 
-This project showcases practical, hands‑on experience applying STIG‑aligned controls to a Windows VM.
+This project showcases practical, hands‑on experience applying STIG‑aligned controls to a Windows Server VM and validating telemetry in Microsoft Sentinel.
 
 ---
 
-##  Hardening Categories Applied in This Lab
+## Hardening Categories Applied in This Lab
 
 This project focuses on the most impactful Windows STIG categories:
 
-### **1. Account Policies**
+### 1. Account Policies
 - Password complexity  
 - Minimum password length  
 - Maximum password age  
 - Lockout threshold  
 - Lockout duration  
 
-### **2. Audit Policies**
+### 2. Audit Policies
 - Logon events  
 - Privilege use  
 - Object access  
@@ -64,107 +67,161 @@ This project focuses on the most impactful Windows STIG categories:
 - System events  
 - Account management  
 
-### **3. User Rights Assignment**
-- Who can log on locally  
-- Who can log on via RDP  
-- Who can shut down the system  
-- Who can change system time  
-- Who can debug programs  
+### 3. User Rights Assignment
+- Local logon permissions  
+- Remote logon permissions (RDP)  
+- Shutdown permissions  
+- System time modification  
+- Debug program rights  
 
-### **4. Security Options**
+### 4. Security Options
 - UAC configuration  
 - SMB signing  
 - LAN Manager authentication level  
 - Anonymous access restrictions  
 - Driver loading restrictions  
 
-### **5. Registry Hardening**
+### 5. Registry Hardening
 - LSA protection  
 - Credential storage restrictions  
-- Remote access hardening  
+- Anonymous access restrictions  
 - Logging configuration  
 
-### **6. Logging & Monitoring**
+### 6. Logging & Monitoring
 - Sysmon deployment  
 - Event Viewer validation  
 - Enhanced telemetry for process, network, registry, and file events  
 
 ---
 
-##  How Hardening Was Applied
+## How Hardening Was Applied
 
-Hardening was applied through:
-
-### **Group Policy (GPO)**
+### Group Policy (GPO)
 Used to configure:
+
 - Account policies  
 - Audit policies  
 - User rights assignment  
 - Security options  
 
-Screenshots of applied GPO settings are available in `/screenshots/gpo`.
+**Screenshots:**  
+Located in `/screenshots/gpo`
 
 ---
 
-### **Sysmon Deployment**
+### Sysmon Deployment
+
 Sysmon provides:
+
 - Process creation telemetry  
 - Network connection logs  
 - Registry modification logs  
 - File write logs  
 
-Screenshots of Sysmon logs are available in `/screenshots/sysmon`.
+**Screenshots:**  
+Located in `/screenshots/sysmon`
 
 ---
 
-### **Audit Policy Enforcement**
+### Audit Policy Enforcement
+
 Audit policies were configured to ensure detailed logging of:
+
 - Authentication  
 - Privilege use  
 - Object access  
 - Policy changes  
 
-Screenshots of audit logs are available in `/screenshots/audit`.
+**Screenshots:**  
+Located in `/screenshots/audit`
 
 ---
 
-### **PowerShell Validation**
+### Registry Hardening
+
+Registry keys under:
+## HKLM\SYSTEM\CurrentControlSet\Control\Lsa
+
+
+were validated to ensure:
+
+- Anonymous restrictions  
+- LM hash removal  
+- LAN Manager authentication level  
+- LSA hardening  
+
+**Screenshots:**  
+Located in `/screenshots/lsa-registry`
+
+---
+
+### Firewall Hardening
+
+Firewall profiles were validated using:
+
+Get-NetFirewallProfile
+
+
+**Screenshots:**  
+Located in `/screenshots/firewall`
+
+---
+
+### PowerShell Validation
+
 PowerShell was used to confirm:
+
 - Audit policy configuration  
 - Registry hardening  
 - Sysmon installation  
 - GPO enforcement  
 
-Validation commands and outputs are available in `/validation`.
+**Commands used:**
+auditpol /get /category:*
+Get-Service Sysmon64
+Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+Get-NetFirewallProfile
+
 
 ---
 
-##  Validation Approach
+## Telemetry Validation (Microsoft Sentinel)
 
-Validation includes:
-- Event Viewer screenshots  
-- Sysmon Operational log entries  
-- Audit policy output (`auditpol /get /category:*`)  
-- Registry checks (`Get-ItemProperty`)  
-- KQL queries confirming ingestion (optional pairing with SeemSIEM)  
+Telemetry was validated using KQL queries in Microsoft Sentinel:
 
-These artifacts demonstrate that hardening controls were applied and are actively enforced.
+### Sysmon Logs
+```kql
+Event
+| where EventLog == "Microsoft-Windows-Sysmon/Operational"
+| order by TimeGenerated desc
+| take 20
+```
 
----
+### Security Logs
+```kql
+SecurityEvent
+| take 20
+```
 
-## 📝 Notes
+### Event Log Summary
+```kql
+Event
+| summarize count() by EventLog
+```
 
-- This project is a practical hardening lab inspired by STIG guidance.  
-- It is not an official DISA STIG implementation.  
-- Controls were selected based on relevance, impact, and reproducibility.  
-- All screenshots and validation outputs were captured from the hardened VM.  
+### AMA Heartbeat
+```kql
+Heartbeat
+| take 10
+```
+Screenshots:  
+Located in /screenshots/kql-*
 
----
+## Notes
+This project is a practical hardening lab inspired by STIG guidance.
 
-##  Purpose of This Document
+It is not an official DISA STIG implementation.
 
-This overview provides the context behind the hardening work performed in WinSTIG.  
-It explains the STIG categories applied, the methods used, and the validation steps taken to demonstrate compliance.
+Controls were selected based on relevance, impact, and reproducibility.
 
-Together with the README, scripts, screenshots, and validation artifacts, this document helps present a complete, professional, gov‑sec‑aligned hardening project.
-
+All screenshots and validation outputs were captured from the hardened VM.
