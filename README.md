@@ -152,8 +152,6 @@ Sentinel enabled on the Log Analytics Workspace.
 
 ## 6. KQL Validation Queries
 
-## 6. KQL Validation Queries
-
 These queries validate that telemetry is flowing correctly into Microsoft Sentinel.
 
 ### Sysmon Logs
