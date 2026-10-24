@@ -39,37 +39,36 @@ This project demonstrates:
 
 ## 3. Host Hardening (STIGify)
 
-### Sysmon Installation  
+### Sysmon Installation
+
 Sysmon installed and running as a service.
 
-**Screenshot:**  
-`Get-Service Sysmon64`
+![Sysmon Service](screenshots/sysmon-service.png)
 
 ---
 
-### Sysmon Configuration  
+### Sysmon Configuration
+
 Sysmon configured with a custom XML ruleset for process, registry, network, and DNS visibility.
 
-**Screenshot:**  
-Open:  
-`C:\Windows\Sysmon\sysmonconfig.xml`
+![Sysmon Configuration](screenshots/sysmon-config.png)
 
 ---
 
-### Audit Policy Hardening  
+### Audit Policy Hardening
+
 Audit policies configured for detailed tracking and security visibility.
 
-**Screenshot:**  
-`auditpol /get /category:*`
+![Audit Policy Configuration](screenshots/auditpol.png)
 
 Shows STIG-aligned settings such as:
 
-- Logon/Logoff  
-- Account Logon  
-- Object Access  
-- Policy Change  
-- System  
-- Detailed Tracking  
+- Logon/Logoff
+- Account Logon
+- Object Access
+- Policy Change
+- System
+- Detailed Tracking
 
 ---
 
@@ -92,13 +91,11 @@ Common hardened values include:
 
 ---
 
-### Firewall Hardening  
+### Firewall Hardening
+
 Firewall profiles enforced and logging enabled.
 
-**Screenshot:**  
-`Get-NetFirewallProfile`  
-or  
-Open **wf.msc** → Overview
+![Firewall Profiles](screenshots/firewall-profiles.png)
 
 Shows:
 
@@ -108,24 +105,27 @@ Shows:
 - DefaultInbound: Block
 - ---
 
-### LSA Protection  
-LSA hardening validated through registry keys.
+### Registry Hardening (LSA & Authentication)
 
-**Screenshot:**  
-Same LSA registry screenshot as above.
+Registry keys under LSA hardened to restrict anonymous access and improve credential security.
+
+![LSA Registry Configuration](screenshots/lsa-registry.png)
 
 ---
 
 ## 4. Telemetry Pipeline (AMA + DCR)
 
-### Azure Monitor Agent Installed  
-AMA installed to collect Sysmon + Windows logs.
+### Azure Monitor Agent Installed
 
-**Screenshot:**  
-Services.msc showing:
+AMA installed to collect Sysmon and Windows event logs.
 
-- Azure Monitor Agent  
-- Sysmon64
+![Sysmon Service](screenshots/sysmon-service.png)
+
+### Data Collection Rule (DCR)
+
+DCR configured to collect Application, System, Security, and Sysmon logs.
+
+![DCR Configuration](screenshots/dcr-config.png)
 
 ---
 
@@ -146,40 +146,71 @@ Azure Portal → Monitor → Data Collection Rules → Your DCR
 
 Sentinel enabled on the Log Analytics Workspace.
 
-**Screenshot:**  
-Azure Portal → Microsoft Sentinel → Overview  
-Workspace: `eri-siem-lab`
+![Microsoft Sentinel Overview](screenshots/sentinel-overview.png)
 
 ---
 
 ## 6. KQL Validation Queries
 
-These queries validate that telemetry is flowing correctly into Sentinel.
+## 6. KQL Validation Queries
 
-### Sysmon Logs  
+These queries validate that telemetry is flowing correctly into Microsoft Sentinel.
+
+### Sysmon Logs
+
 ```kql
 Event
 | where EventLog == "Microsoft-Windows-Sysmon/Operational"
 | order by TimeGenerated desc
 | take 20
 ```
-### SecurityEvent Logs
+
+![Sysmon Events](screenshots/kql-sysmon.png)
+
+---
+
+### Sysmon Activity Review
+
+```kql
+Event
+| where EventLog == "Microsoft-Windows-Sysmon/Operational"
+```
+
+![Sysmon Usage](screenshots/kql-sysmon-usage.png)
+
+---
+
+### Security Event Logs
+
 ```kql
 SecurityEvent
 | take 20
 ```
 
+![Security Events](screenshots/kql-securityevent.png)
+
+---
+
 ### Event Log Summary
+
 ```kql
 Event
 | summarize count() by EventLog
 ```
 
+![Event Summary](screenshots/kql-event-summary.png)
+
+---
+
 ### AMA Heartbeat
+
 ```kql
 Heartbeat
 | take 10
 ```
+
+![Heartbeat Telemetry](screenshots/kql-heartbeat.png)
+
 
 ---
 
