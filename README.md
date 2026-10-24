@@ -129,19 +129,6 @@ DCR configured to collect Application, System, Security, and Sysmon logs.
 
 ---
 
-### Data Collection Rule (DCR)  
-DCR configured to collect:
-
-- Application  
-- System  
-- Security  
-- Sysmon  
-
-**Screenshot:**  
-Azure Portal → Monitor → Data Collection Rules → Your DCR
-
----
-
 ## 5. Microsoft Sentinel Enablement
 
 Sentinel enabled on the Log Analytics Workspace.
